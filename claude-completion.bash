@@ -1,6 +1,19 @@
 # ========================================
 # Claude Bash Completion
 # ========================================
+
+# Wrapper function to merge slash command arguments into a single parameter
+claude() {
+  # Check if first argument starts with /
+  if [[ $# -gt 0 && "$1" == /* ]]; then
+    # Merge all arguments into a single quoted string
+    command claude "$*"
+  else
+    # Pass arguments as-is
+    command claude "$@"
+  fi
+}
+
 _claude_bash_completion()
 {
   local cur prev opts commands_dir custom_commands
