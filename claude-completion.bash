@@ -34,10 +34,12 @@ _claude_bash_completion()
 
   # If current word starts with /, complete slash commands
   if [[ "$cur" == /* ]]; then
-    # Get custom commands from ~/.claude/commands/ directory
+    # Get custom commands from ~/.claude/commands/ directory (supports subdirectories)
+    # e.g., ~/.claude/commands/dev/rails.md -> /dev:rails
     custom_commands=$(find -L "$commands_dir" -type f -name "*.md" 2>/dev/null | \
-                      xargs -n1 basename 2>/dev/null | \
+                      sed "s|^$commands_dir/||" | \
                       sed 's/\.md$//' | \
+                      sed 's|/|:|g' | \
                       sed 's/^/\//')
 
     # Combine built-in and custom commands
