@@ -3,13 +3,35 @@
 # ========================================
 
 # Wrapper function to merge slash command arguments into a single parameter
+# This allows slash commands to receive multi-word arguments properly.
+# Example: `claude --model haiku /format 'some text'` becomes
+#          `claude --model haiku "/format some text"`
 claude() {
-  # Check if first argument starts with /
-  if [[ $# -gt 0 && "$1" == /* ]]; then
-    # Merge all arguments into a single quoted string
-    command claude "$*"
+  local args_before=()
+  local slash_cmd_with_rest=""
+  local found_slash=false
+
+  for arg in "$@"; do
+    if [[ "$found_slash" == false && "$arg" == /* ]]; then
+      # Found the first slash command
+      found_slash=true
+      slash_cmd_with_rest="$arg"
+    elif [[ "$found_slash" == true ]]; then
+      # Everything after slash command gets merged with space separator
+      slash_cmd_with_rest="$slash_cmd_with_rest $arg"
+    else
+      # Before slash command, keep as separate args
+      args_before+=("$arg")
+    fi
+  done
+
+  if [[ "$found_slash" == true ]]; then
+    if [[ ${#args_before[@]} -gt 0 ]]; then
+      command claude "${args_before[@]}" "$slash_cmd_with_rest"
+    else
+      command claude "$slash_cmd_with_rest"
+    fi
   else
-    # Pass arguments as-is
     command claude "$@"
   fi
 }
